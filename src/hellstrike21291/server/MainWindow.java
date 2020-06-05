@@ -45,11 +45,53 @@ public class MainWindow {
 		kickButton = new JButton("Исключить");
 		
 		isStart = false;
+		port = 0;
 		
 		startButton.setBounds(600, 70, 170, 20);
+		startButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(isStart == true) {
+					logArea.append("Сервер уже запущен\n");
+				}
+				else {
+					/*
+					 * Реализовать запуск сервера
+					 */
+					try {
+						port = Integer.parseInt(portField.getText());
+						if(port > 65535 || port < 0)
+							throw new NumberFormatException();
+					}
+					catch(NumberFormatException ex) {
+						logArea.append("Неверно указан порт\n");
+						port = 0;
+						return;
+					}
+					
+					isStart = true;
+					logArea.append("Сервер запущен\n");
+				}
+			}
+		});
 		frame.add(startButton);
 		
 		stopButton.setBounds(600, 90, 170, 20);
+		stopButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(isStart == false) {
+					logArea.append("Сервер уже остановлен\n");
+				}
+				else {
+					/*
+					 * Реализовать остановку сервера
+					 */
+					isStart = false;
+					logArea.append("Сервер остановлен\n");
+				}
+			}
+		});
 		frame.add(stopButton);
 		
 		saveButton.setBounds(600, 110, 170, 20);
