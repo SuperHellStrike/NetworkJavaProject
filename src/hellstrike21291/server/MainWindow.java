@@ -1,12 +1,17 @@
 package hellstrike21291.server;
 
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 
@@ -26,6 +31,10 @@ public class MainWindow {
 	
 	private boolean isStart;
 	private int port;
+	
+	private Date currentDate;
+	private SimpleDateFormat formatForDate;
+	private Font logFont;
 	
 	public static void main(String[] args) {
 		new MainWindow();
@@ -47,12 +56,16 @@ public class MainWindow {
 		isStart = false;
 		port = 0;
 		
+		formatForDate = new SimpleDateFormat("[HH:mm:ss] ");
+		logFont = new Font("Monospaced", 0, 16);
+		
 		startButton.setBounds(600, 70, 170, 20);
 		startButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isStart == true) {
-					logArea.append("Сервер уже запущен\n");
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Сервер уже запущен\n");
 				}
 				else {
 					/*
@@ -64,13 +77,15 @@ public class MainWindow {
 							throw new NumberFormatException();
 					}
 					catch(NumberFormatException ex) {
-						logArea.append("Неверно указан порт\n");
+						currentDate = new Date();
+						logArea.append(formatForDate.format(currentDate) + "Неверно указан порт\n");
 						port = 0;
 						return;
 					}
 					
 					isStart = true;
-					logArea.append("Сервер запущен\n");
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Сервер запущен\n");
 				}
 			}
 		});
@@ -81,23 +96,61 @@ public class MainWindow {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				if(isStart == false) {
-					logArea.append("Сервер уже остановлен\n");
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Сервер уже остановлен\n");
 				}
 				else {
 					/*
 					 * Реализовать остановку сервера
 					 */
 					isStart = false;
-					logArea.append("Сервер остановлен\n");
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Сервер остановлен\n");
 				}
 			}
 		});
 		frame.add(stopButton);
 		
 		saveButton.setBounds(600, 110, 170, 20);
+		saveButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent arg0) {
+				try(FileOutputStream logFile = new FileOutputStream("./server.log")) {
+					logFile.write(logArea.getText().getBytes());
+				} catch (FileNotFoundException e) {
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Ошибка при открытии лога сервера\n");
+				} catch (IOException e) {
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Ошибка при записи лога сервера\n");
+				}
+			}
+		});
 		frame.add(saveButton);
 		
 		kickButton.setBounds(600, 190, 170, 20);
+		kickButton.addActionListener(new ActionListener() {
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				if(isStart == false) {
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Нельзя кикнуть игрока: сервер выключен\n");
+					return;
+				}
+				int kickID = 0;
+				try {
+					kickID = Integer.parseInt(kickField.getText());
+					if(kickID < 0)
+						throw new NumberFormatException();
+				}
+				catch(NumberFormatException ex) {
+					currentDate = new Date();
+					logArea.append(formatForDate.format(currentDate) + "Неверно указан ID объекта\n");
+					return;
+				}
+				
+			}
+		});
 		frame.add(kickButton);	
 		
 		exitButton.setBounds(600, 520, 170, 20);
@@ -128,9 +181,10 @@ public class MainWindow {
 		
 		logArea.setBounds(30, 30, 540, 510);
 		logArea.setEditable(false);
+		logArea.setFont(logFont);
 		frame.add(logArea);
 		
-		frame.setSize(800, 600);
+		frame.setBounds(550, 150, 800, 600);
 		frame.setResizable(false);
 		frame.setLayout(null);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
