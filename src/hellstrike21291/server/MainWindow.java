@@ -1,8 +1,12 @@
 package hellstrike21291.server;
 
 import java.awt.Font;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,10 +35,13 @@ public class MainWindow {
 	
 	private boolean isStart;
 	private int port;
+	private ServerThread server;
 	
 	private Date currentDate;
 	private SimpleDateFormat formatForDate;
 	private Font logFont;
+	
+	private Point[] objects;
 	
 	public static void main(String[] args) {
 		new MainWindow();
@@ -58,6 +65,26 @@ public class MainWindow {
 		
 		formatForDate = new SimpleDateFormat("[HH:mm:ss] ");
 		logFont = new Font("Monospaced", 0, 16);
+		
+		objects = new Point[256];
+		for(int i = 0; i < objects.length; i++)
+			objects[i] = new Point();
+		
+		try(FileInputStream fis = new FileInputStream("./objects.data")) {
+			DataInputStream dis = new DataInputStream(fis);
+			for(int i = 0; i < objects.length; i++) 
+				objects[i] = new Point(dis.readInt(), dis.readInt());
+			dis.close();
+		} catch (FileNotFoundException e2) {
+			System.out.println("Файл с объектанми не найден");
+			try(FileOutputStream fos = new FileOutputStream("./objects.data")) {
+				fos.write(new byte[256*Integer.BYTES*2], 0, 256*Integer.BYTES*2);
+			} catch (FileNotFoundException e1) {} catch (IOException e1) {}
+		} catch (IOException e2) {
+			System.out.println("Какое-то говно при чтении файла\n");
+		}
+		
+		
 		
 		startButton.setBounds(600, 70, 170, 20);
 		startButton.addActionListener(new ActionListener() {
@@ -83,6 +110,15 @@ public class MainWindow {
 						return;
 					}
 					
+					try {
+						server = new ServerThread(port, objects);
+						server.start();
+					} catch (IOException e1) {
+						currentDate = new Date();
+						logArea.append(formatForDate.format(currentDate) + "Ошибка при запуске потока сервера\n");
+						return;
+					}
+					
 					isStart = true;
 					currentDate = new Date();
 					logArea.append(formatForDate.format(currentDate) + "Сервер запущен\n");
@@ -103,6 +139,9 @@ public class MainWindow {
 					/*
 					 * Реализовать остановку сервера
 					 */
+					
+					server.interrupt();
+					
 					isStart = false;
 					currentDate = new Date();
 					logArea.append(formatForDate.format(currentDate) + "Сервер остановлен\n");
@@ -161,6 +200,13 @@ public class MainWindow {
 					stopButton.doClick();
 					saveButton.doClick();
 				}
+				try(FileOutputStream fos = new FileOutputStream("./objects.data")) {
+					DataOutputStream dos = new DataOutputStream(fos);
+					for(int i = 0; i < objects.length; i ++) {
+						dos.writeInt(objects[i].x);
+						dos.writeInt(objects[i].y);
+					}
+				} catch (FileNotFoundException e1) {} catch (IOException e1) {}
 				System.exit(0);
 			}
 		});
