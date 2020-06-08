@@ -139,7 +139,6 @@ public class MainWindow {
 					/*
 					 * Реализовать остановку сервера
 					 */
-					
 					server.interrupt();
 					
 					isStart = false;
