@@ -2,18 +2,19 @@ package Salkov;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 
 
 public class Rectangle {
-    int width = 10;
-    int height = 10;
-    int centerX = 5 ;
-    int centerY= 5;
+    private int width = 10;
+    private int height = 10;
+    private int centerX;
+    private int centerY;
+    private int id;
 
-    public Rectangle(){
-
+    public Rectangle(int id, int x, int y){
+        this.id = id;
+        centerX = x;
+        centerY = y;
     }
 
 
@@ -23,8 +24,23 @@ public class Rectangle {
         g.fillRect(centerX - 5 , centerY - 5 , width, height);
     }
 
-    public void move(JPanel jPanel){
+    public int getCenterX() {
+        return centerX;
     }
 
+    public int getCenterY() {
+        return centerY;
+    }
 
+    public void setCenterX(int centerX) {
+        this.centerX = centerX;
+    }
+
+    public void setCenterY(int centerY) {
+        this.centerY = centerY;
+    }
+
+    public int getId() {
+        return id;
+    }
 }
